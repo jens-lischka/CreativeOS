@@ -75,7 +75,11 @@ tests/               unit, integration (PGlite), e2e (Playwright)
   outcome gate (creative lead/PM/CD only); approved → delivered, needs_revision → back to
   in_production with auto version bump; version badge on work detail; review panel shown when
   status is `in_review`. ✅
-- Phases 5–6: closeout/memory/reporting, integrations.
+- **Phase 5 — Closeout, memory & reporting:** `project_closed` event (reflection, what worked,
+  what to improve) gated to PM; `CloseoutForm` shown on `closing` work; `MemoryCard` rendered on
+  `closed` work; Reports page with Pulse (active/in-review/at-risk/closed counts), risk signals
+  (overdue, over-budget, blocked), and recently-closed memory cards. ✅
+- Phase 6: integrations.
 
 ### Connecting Supabase
 

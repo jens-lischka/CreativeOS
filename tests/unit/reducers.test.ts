@@ -82,6 +82,28 @@ describe("applyEvent", () => {
   });
 });
 
+describe("project_closed (§Phase 5)", () => {
+  it("moves status to closed", () => {
+    const s1 = applyEvent(null, created);
+    const s2 = applyEvent(s1, {
+      type: "project_closed",
+      payload: { reflection: "Great outcome overall." },
+    });
+    expect(s2.status).toBe("closed");
+  });
+
+  it("preserves all other state fields when closing", () => {
+    const s1 = applyEvent(null, created);
+    const s2 = applyEvent(s1, { type: "time_logged", payload: { hours: 5 } });
+    const s3 = applyEvent(s2, {
+      type: "project_closed",
+      payload: { reflection: "Done.", whatWorked: "Good collab." },
+    });
+    expect(s3.totalHours).toBe(5);
+    expect(s3.tier).toBe(2);
+  });
+});
+
 describe("review_outcome (§Phase 4)", () => {
   it("approved moves to delivered, keeps version", () => {
     const s1 = applyEvent(null, created);

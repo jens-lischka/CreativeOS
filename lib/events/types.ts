@@ -15,6 +15,7 @@ export const EVENT_TYPES = [
   "artifact_added",
   "blocker_raised",
   "scope_change_proposed",
+  "project_closed",
 ] as const;
 export type EventType = (typeof EVENT_TYPES)[number];
 
@@ -61,6 +62,11 @@ export const payloadSchemas = {
   scope_change_proposed: z.object({
     description: z.string().min(1),
     estimateHours: z.number().nonnegative().optional(),
+  }),
+  project_closed: z.object({
+    reflection: z.string().min(1),
+    whatWorked: z.string().optional(),
+    whatToImprove: z.string().optional(),
   }),
 } satisfies Record<EventType, z.ZodTypeAny>;
 

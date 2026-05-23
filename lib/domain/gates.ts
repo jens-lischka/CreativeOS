@@ -79,6 +79,12 @@ export function authorizeEvent(
       }
       return { action: "deny", reason: "You do not have permission to attach files (§13)." };
 
+    case "project_closed":
+      if (roles.some((r) => permissionFor(r, "close_project") === "yes")) {
+        return { action: "allow" };
+      }
+      return { action: "deny", reason: "Only a PM can formally close a project (§13)." };
+
     default:
       return { action: "allow" };
   }

@@ -49,6 +49,8 @@ export function describeEvent(type: string, payload: unknown): string {
       return `Scope change proposed: ${String(p.description ?? "")}${
         p.estimateHours != null ? ` (est. ${String(p.estimateHours)}h)` : ""
       }`;
+    case "project_closed":
+      return `Project closed — ${String(p.reflection ?? "")}`;
     default:
       return titleCase(type);
   }

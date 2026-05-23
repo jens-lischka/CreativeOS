@@ -55,6 +55,18 @@ describe("authorizeEvent — rights & gates (§13/§14)", () => {
   });
 });
 
+describe("authorizeEvent — project_closed (§Phase 5)", () => {
+  it("only a PM can close a project", () => {
+    const ev: DomainEvent = {
+      type: "project_closed",
+      payload: { reflection: "Wrapped up." },
+    };
+    expect(authorizeEvent(["designer"], ev, ctx(2, "closing")).action).toBe("deny");
+    expect(authorizeEvent(["creative_director"], ev, ctx(2, "closing")).action).toBe("deny");
+    expect(authorizeEvent(["project_manager"], ev, ctx(2, "closing")).action).toBe("allow");
+  });
+});
+
 describe("authorizeEvent — review_outcome & artifact_added (§Phase 4)", () => {
   it("blocks a designer from recording a review outcome", () => {
     const ev: DomainEvent = {
