@@ -33,6 +33,9 @@ jobs:
             echo "::error::DATABASE_URL secret is not set. Add it under Settings → Secrets and variables → Actions."
             exit 1
           fi
+          # Print username and host only (never the password) to diagnose connection issues
+          echo "DB username: $(echo $DATABASE_URL | sed 's|postgresql://||' | cut -d: -f1)"
+          echo "DB host: $(echo $DATABASE_URL | sed 's|.*@||' | cut -d/ -f1)"
 
       - uses: pnpm/action-setup@v4
         with:
