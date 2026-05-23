@@ -9,8 +9,7 @@ export async function runMigrations(): Promise<void> {
     const postgres = (await import("postgres")).default;
     const { drizzle } = await import("drizzle-orm/postgres-js");
     const { migrate } = await import("drizzle-orm/postgres-js/migrator");
-    // prepare:false keeps this compatible with Supabase's transaction pooler.
-    const client = postgres(url, { max: 1, prepare: false });
+    const client = postgres(url, { max: 1, prepare: false, ssl: "require" });
     const db = drizzle(client, { schema });
     await migrate(db, { migrationsFolder: MIGRATIONS_FOLDER });
     await client.end();
