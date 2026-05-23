@@ -58,7 +58,7 @@ export function CloseoutForm({
   return (
     <div className="space-y-3 rounded border border-neutral-300 bg-neutral-50 p-4">
       <div className="text-sm font-medium text-neutral-700">
-        This work is closing — capture what you learned before it's gone
+        This work is closing — capture what you learned before it&apos;s gone
       </div>
       <form onSubmit={submit} className="space-y-3">
         <div>
