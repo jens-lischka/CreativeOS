@@ -72,7 +72,23 @@ tests/               unit, integration (PGlite), e2e (Playwright)
   authorized roles change commitments); scope proposals show a neutral trade-off (§24). ✅
 - Phases 4–6: artifacts/reviews, closeout/memory/reporting, integrations.
 
-### Command bar (Phase 2)
+### Connecting Supabase
+
+The data layer uses PGlite locally and switches to Supabase whenever `DATABASE_URL`
+is set (identical schema/migrations). To point at Supabase:
+
+1. Get the **Session pooler** connection string (Supabase → Project Settings → Database;
+   port `5432`, IPv4) and add your DB password.
+2. Run migrations where Postgres egress is open:
+   - **CI:** add `DATABASE_URL` as a GitHub Actions repo secret, then run the
+     **DB migrate (Supabase)** workflow (`.github/workflows/db-migrate.yml`) — toggle
+     `seed` on for the first run to load demo data. The workflow lives on the default
+     branch once merged.
+   - **Local:** put `DATABASE_URL` in `.env` and run `pnpm db:migrate && pnpm db:seed`.
+3. Set `DATABASE_URL` in your app host's runtime env so the deployed app reads Supabase.
+
+(The Claude Code web sandbox allows HTTPS only, so it can't open a Postgres connection
+to Supabase directly — run migrations from CI or locally.)
 
 The Today page and each work detail page have a command bar. Type a plain-language update
 (e.g. *"Finished v1 of the teaser, ready for review, 2h"*) and Claude parses it into structured

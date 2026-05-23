@@ -1,0 +1,54 @@
+name: DB migrate (Supabase)
+
+# Runs database migrations against Supabase from CI, where Postgres egress is
+# open (the Claude Code web sandbox only allows HTTPS, so it can't reach :5432).
+# Requires a repository secret DATABASE_URL (Settings → Secrets and variables →
+# Actions). Use the Supabase Session pooler connection string (port 5432).
+
+on:
+  workflow_dispatch:
+    inputs:
+      seed:
+        description: "Also run the demo seed (inserts sample data — run once)"
+        type: boolean
+        default: false
+  push:
+    branches: [main]
+    paths:
+      - "drizzle/**"
+      - "lib/db/**"
+      - ".github/workflows/db-migrate.yml"
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Ensure DATABASE_URL is configured
+        run: |
+          if [ -z "${DATABASE_URL}" ]; then
+            echo "::error::DATABASE_URL secret is not set. Add it under Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Apply migrations
+        run: pnpm db:migrate
+
+      # Seed only on a manual run with the toggle on, so pushes never duplicate data.
+      - name: Seed demo data
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.seed }}
+        run: pnpm db:seed
