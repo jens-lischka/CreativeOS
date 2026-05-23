@@ -7,6 +7,7 @@ export const EVENT_TYPES = [
   "work_object_created",
   "tier_assigned",
   "status_changed",
+  "production_locked",
   "progress_updated",
   "time_logged",
   "review_requested",
@@ -37,6 +38,7 @@ export const payloadSchemas = {
     to: z.enum(WORK_STATUSES),
     from: z.enum(WORK_STATUSES).optional(),
   }),
+  production_locked: z.object({ note: z.string().optional() }),
   progress_updated: z.object({
     note: z.string().min(1),
     status: z.enum(WORK_STATUSES).optional(),

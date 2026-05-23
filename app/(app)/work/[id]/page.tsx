@@ -3,6 +3,9 @@ import { notFound } from "next/navigation";
 import { AddUpdate } from "@/components/add-update";
 import { Badge } from "@/components/badge";
 import { CommandBar } from "@/components/command-bar";
+import { Governance } from "@/components/governance";
+import { suggestTier } from "@/lib/domain/gates";
+import type { WorkObjectType } from "@/lib/domain/types";
 import { describeEvent, statusLabel, tierLabel, typeLabel } from "@/lib/labels";
 import {
   getBudgetSummary,
@@ -44,6 +47,7 @@ export default async function WorkDetailPage({
           <div className="flex shrink-0 items-center gap-2">
             <Badge>{tierLabel(work.tier)}</Badge>
             <Badge tone="blue">{statusLabel(work.status)}</Badge>
+            {work.mode && <Badge tone="amber">{statusLabel(work.mode)}</Badge>}
           </div>
         </div>
         {work.why && <p className="mt-3 text-sm text-neutral-700">{work.why}</p>}
@@ -74,6 +78,19 @@ export default async function WorkDetailPage({
           </ul>
         </section>
       )}
+
+      <section>
+        <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-neutral-500">
+          Tier &amp; production
+        </h2>
+        <Governance
+          workObjectId={id}
+          tier={work.tier}
+          mode={work.mode}
+          suggestedTier={suggestTier({ type: work.type as WorkObjectType, title: work.title })}
+          people={people.map((p) => ({ id: p.id, name: p.name }))}
+        />
+      </section>
 
       <section>
         <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-neutral-500">

@@ -52,6 +52,25 @@ describe("applyEvent", () => {
     expect(s3.status).toBe("delivered");
   });
 
+  it("starts Tier 1 work in exploration mode (§7)", () => {
+    const t1 = applyEvent(null, {
+      type: "work_object_created",
+      payload: { workObjectType: "project", title: "Campaign", tier: 1 },
+    });
+    expect(t1.mode).toBe("exploration");
+    expect(applyEvent(null, created).mode).toBeNull();
+  });
+
+  it("production_locked moves into structured production (§7)", () => {
+    const s1 = applyEvent(null, {
+      type: "work_object_created",
+      payload: { workObjectType: "project", title: "Campaign", tier: 1 },
+    });
+    const s2 = applyEvent(s1, { type: "production_locked", payload: {} });
+    expect(s2.mode).toBe("production");
+    expect(s2.status).toBe("in_production");
+  });
+
   it("keeps the blocked flag until the work leaves 'waiting'", () => {
     const s1 = applyEvent(null, created);
     const s2 = applyEvent(s1, { type: "blocker_raised", payload: { reason: "Copy missing" } });

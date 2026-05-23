@@ -28,6 +28,8 @@ export function describeEvent(type: string, payload: unknown): string {
       return `Assigned ${tierLabel(Number(p.tier))}`;
     case "status_changed":
       return `Status → ${statusLabel(String(p.to ?? ""))}`;
+    case "production_locked":
+      return "Locked into production";
     case "progress_updated":
       return `Progress: ${String(p.note ?? "")}`;
     case "time_logged":

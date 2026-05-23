@@ -1,6 +1,7 @@
 import { asc, desc, eq, sql } from "drizzle-orm";
 import { getDb } from "./db";
-import { events, people, timeEntries, workObjects } from "./db/schema";
+import { events, people, roleAssignments, timeEntries, workObjects } from "./db/schema";
+import type { Role } from "./domain/types";
 
 export interface WorkObjectListItem {
   id: string;
@@ -82,6 +83,15 @@ export async function getChildren(parentId: string): Promise<WorkObjectListItem[
 export async function listPeople() {
   const db = await getDb();
   return db.select().from(people).orderBy(asc(people.name));
+}
+
+export async function getPersonRoles(personId: string): Promise<Role[]> {
+  const db = await getDb();
+  const rows = await db
+    .select({ role: roleAssignments.role })
+    .from(roleAssignments)
+    .where(eq(roleAssignments.personId, personId));
+  return rows.map((r) => r.role as Role);
 }
 
 export interface BudgetSummary {

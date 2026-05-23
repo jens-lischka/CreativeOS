@@ -27,6 +27,7 @@ export async function createWorkObject(
         effortBudgetHours: payload.effortBudgetHours ?? null,
         definitionOfDone: payload.definitionOfDone ?? null,
         status: payload.initialStatus ?? "requested",
+        mode: payload.tier === 1 ? "exploration" : null,
       })
       .returning({ id: workObjects.id });
 
@@ -66,6 +67,7 @@ export async function appendEvent(
       type: current.type,
       tier: (current.tier as Tier | null) ?? null,
       status: current.status,
+      mode: current.mode ?? null,
       title: current.title,
       totalHours: 0,
       blocked: false,
@@ -85,7 +87,7 @@ export async function appendEvent(
 
     await tx
       .update(workObjects)
-      .set({ status: next.status, tier: next.tier, updatedAt: new Date() })
+      .set({ status: next.status, tier: next.tier, mode: next.mode, updatedAt: new Date() })
       .where(eq(workObjects.id, workObjectId));
 
     if (event.type === "time_logged") {

@@ -1,4 +1,4 @@
-import type { Tier, WorkObjectType, WorkStatus } from "../domain/types";
+import type { Tier, WorkMode, WorkObjectType, WorkStatus } from "../domain/types";
 import type { DomainEvent } from "./types";
 
 // The projected current state of a work object, folded from its event log.
@@ -7,6 +7,7 @@ export interface WorkObjectState {
   type: WorkObjectType;
   tier: Tier | null;
   status: WorkStatus;
+  mode: WorkMode | null;
   title: string;
   totalHours: number;
   blocked: boolean;
@@ -23,6 +24,8 @@ export function applyEvent(
       type: p.workObjectType,
       tier: p.tier ?? null,
       status: p.initialStatus ?? "requested",
+      // Tier 1 protects ambiguity in exploration first (§7); others start unset.
+      mode: p.tier === 1 ? "exploration" : null,
       title: p.title,
       totalHours: 0,
       blocked: false,
@@ -39,6 +42,10 @@ export function applyEvent(
   switch (event.type) {
     case "tier_assigned":
       return { ...state, tier: event.payload.tier };
+
+    case "production_locked":
+      // The formal exploration→production moment (§7): work becomes structured.
+      return { ...state, mode: "production", status: "in_production" };
 
     case "status_changed": {
       const to = event.payload.to;

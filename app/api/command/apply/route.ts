@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { getDb } from "@/lib/db";
-import { appendEvent } from "@/lib/events/append";
+import { applyEventAuthorized, GateError } from "@/lib/events/apply";
 import { parseEvent } from "@/lib/events/types";
 
 // Applies events the user confirmed after an ambiguous parse.
@@ -23,12 +22,14 @@ export async function POST(request: Request) {
   }
 
   try {
-    const db = await getDb();
     for (const raw of events) {
       const event = parseEvent(raw.type, raw.payload ?? {});
-      await appendEvent(db, targetWorkObjectId, event, actorId ?? null);
+      await applyEventAuthorized(targetWorkObjectId, event, actorId ?? null);
     }
   } catch (err) {
+    if (err instanceof GateError) {
+      return NextResponse.json({ error: err.message }, { status: 403 });
+    }
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Failed to apply events" },
       { status: 400 },

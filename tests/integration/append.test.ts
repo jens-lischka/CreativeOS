@@ -56,6 +56,21 @@ describe("append + project (event sourcing)", () => {
     expect(time[0].hours).toBe(3);
   });
 
+  it("projects production_locked onto mode and status", async () => {
+    const { id } = await createWorkObject(db, {
+      workObjectType: "project",
+      title: "Campaign",
+      tier: 1,
+    });
+    let [row] = await db.select().from(schema.workObjects).where(eq(schema.workObjects.id, id));
+    expect(row.mode).toBe("exploration");
+
+    await appendEvent(db, id, { type: "production_locked", payload: {} });
+    [row] = await db.select().from(schema.workObjects).where(eq(schema.workObjects.id, id));
+    expect(row.mode).toBe("production");
+    expect(row.status).toBe("in_production");
+  });
+
   it("rejects appending to a missing work object", async () => {
     await expect(
       appendEvent(db, "00000000-0000-0000-0000-000000000000", {

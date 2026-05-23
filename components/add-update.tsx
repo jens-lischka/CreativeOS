@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { scopeTradeOff } from "@/lib/domain/gates";
 import { WORK_STATUSES } from "@/lib/domain/types";
 
 interface PersonOption {
@@ -32,6 +33,7 @@ export function AddUpdate({
   const [num, setNum] = useState("");
   const [status, setStatus] = useState<string>("in_production");
   const [error, setError] = useState<string | null>(null);
+  const [tradeOff, setTradeOff] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   function buildPayload(): Record<string, unknown> {
@@ -57,15 +59,22 @@ export function AddUpdate({
     e.preventDefault();
     setSubmitting(true);
     setError(null);
+    setTradeOff(null);
+    const payload = buildPayload();
     const res = await fetch(`/api/work-objects/${workObjectId}/events`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ type: kind, payload: buildPayload(), actorId: actorId || null }),
+      body: JSON.stringify({ type: kind, payload, actorId: actorId || null }),
     });
     setSubmitting(false);
     if (!res.ok) {
-      setError("Could not record update.");
+      const data = await res.json().catch(() => ({}));
+      setError(data.error ?? "Could not record update.");
       return;
+    }
+    // A scope change is a proposal with a visible trade-off (§9, §24).
+    if (kind === "scope_change_proposed") {
+      setTradeOff(scopeTradeOff(num ? Number(num) : undefined));
     }
     setText("");
     setNum("");
@@ -130,6 +139,11 @@ export function AddUpdate({
         />
       )}
       {error && <p className="text-sm text-red-600">{error}</p>}
+      {tradeOff && (
+        <p className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+          {tradeOff}
+        </p>
+      )}
       <button
         type="submit"
         disabled={submitting}

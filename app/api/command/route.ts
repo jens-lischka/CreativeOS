@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
 import { appendEvent } from "@/lib/events/append";
+import { authorizeAll } from "@/lib/events/apply";
 import { createAnthropicCommandLLM, parseCommand } from "@/lib/intel/command-parser";
 import { listWorkObjects } from "@/lib/queries";
 
@@ -61,6 +62,20 @@ export async function POST(request: Request) {
       targetWorkObjectId: target,
       events: serializable,
       summary: parsed.summary,
+    });
+  }
+
+  // A wrong/over-reaching parse must not partially mutate state: authorize the
+  // whole batch first, and fall back to confirmation if any event is gated (§14).
+  const auth = await authorizeAll(target, parsed.events, actorId ?? null);
+  if (!auth.ok) {
+    return NextResponse.json({
+      applied: false,
+      needsConfirmation: true,
+      configured: true,
+      targetWorkObjectId: target,
+      events: serializable,
+      summary: auth.reason,
     });
   }
 

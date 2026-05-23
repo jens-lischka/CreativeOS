@@ -66,7 +66,11 @@ tests/               unit, integration (PGlite), e2e (Playwright)
 - **Phase 2 — Explicit updates + LLM command bar:** free-text command bar parsed by Claude
   (`claude-opus-4-7`, tool use) into structured events, with a confirm-before-apply fallback;
   budget burn on work detail. Set `ANTHROPIC_API_KEY` to enable parsing. ✅
-- Phases 3–6: tiering/gates, artifacts/reviews, closeout/memory/reporting, integrations.
+- **Phase 3 — Tiering, modes & gates:** tier suggestion + PM/CD-confirmed assignment (§3),
+  exploration→production lock (§7), tier-aware lifecycle transitions (§12), and the §13/§14
+  rights matrix enforced on every event-applying endpoint (anyone can raise reality; only
+  authorized roles change commitments); scope proposals show a neutral trade-off (§24). ✅
+- Phases 4–6: artifacts/reviews, closeout/memory/reporting, integrations.
 
 ### Command bar (Phase 2)
 

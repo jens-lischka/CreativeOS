@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { getDb } from "@/lib/db";
-import { appendEvent } from "@/lib/events/append";
+import { applyEventAuthorized, GateError } from "@/lib/events/apply";
 import { parseEvent } from "@/lib/events/types";
 import { getEventLog } from "@/lib/queries";
 
@@ -38,10 +37,12 @@ export async function POST(
 
   try {
     const event = parseEvent(type, payload ?? {});
-    const db = await getDb();
-    const result = await appendEvent(db, id, event, actorId ?? null);
+    const result = await applyEventAuthorized(id, event, actorId ?? null);
     return NextResponse.json(result, { status: 201 });
   } catch (err) {
+    if (err instanceof GateError) {
+      return NextResponse.json({ error: err.message }, { status: 403 });
+    }
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Failed to append event" },
       { status: 400 },
