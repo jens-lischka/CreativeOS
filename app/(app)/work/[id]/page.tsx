@@ -3,8 +3,10 @@ import { notFound } from "next/navigation";
 import { AddUpdate } from "@/components/add-update";
 import { Artifacts } from "@/components/artifacts";
 import { Badge } from "@/components/badge";
+import { CloseoutForm } from "@/components/closeout-form";
 import { CommandBar } from "@/components/command-bar";
 import { Governance } from "@/components/governance";
+import { MemoryCard } from "@/components/memory-card";
 import { ReviewOutcome } from "@/components/review-outcome";
 import { suggestTier } from "@/lib/domain/gates";
 import type { WorkObjectType } from "@/lib/domain/types";
@@ -15,6 +17,7 @@ import {
   getChildren,
   getCurrentVersion,
   getEventLog,
+  getMemoryCard,
   getWorkObject,
   listPeople,
 } from "@/lib/queries";
@@ -30,13 +33,14 @@ export default async function WorkDetailPage({
   const work = await getWorkObject(id);
   if (!work) notFound();
 
-  const [log, children, people, budget, artifactList, currentVersion] = await Promise.all([
+  const [log, children, people, budget, artifactList, currentVersion, memoryCard] = await Promise.all([
     getEventLog(id),
     getChildren(id),
     listPeople(),
     getBudgetSummary(id),
     getArtifacts(id),
     getCurrentVersion(id),
+    getMemoryCard(id),
   ]);
 
   return (
@@ -137,6 +141,24 @@ export default async function WorkDetailPage({
             workObjectId={id}
             people={people.map((p) => ({ id: p.id, name: p.name }))}
           />
+        </section>
+      )}
+
+      {work.status === "closing" && (
+        <section>
+          <CloseoutForm
+            workObjectId={id}
+            people={people.map((p) => ({ id: p.id, name: p.name }))}
+          />
+        </section>
+      )}
+
+      {memoryCard && (
+        <section>
+          <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-neutral-500">
+            Memory
+          </h2>
+          <MemoryCard card={memoryCard} />
         </section>
       )}
 

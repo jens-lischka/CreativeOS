@@ -102,6 +102,9 @@ export function applyEvent(
       // A proposal is a signal, not a change (§13). No state mutation.
       return state;
 
+    case "project_closed":
+      return { ...state, status: "closed" };
+
     default: {
       const _exhaustive: never = event;
       return _exhaustive;
