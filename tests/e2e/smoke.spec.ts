@@ -1,8 +1,9 @@
 import { expect, test } from "@playwright/test";
 
-test("Today view renders", async ({ page }) => {
+test("Today view renders with the command bar", async ({ page }) => {
   await page.goto("/today");
   await expect(page.getByRole("heading", { name: "Today" })).toBeVisible();
+  await expect(page.getByPlaceholder(/What do you want to do/)).toBeVisible();
 });
 
 test("create work, then record an update that lands in the project log", async ({ page }) => {

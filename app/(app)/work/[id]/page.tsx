@@ -2,8 +2,15 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AddUpdate } from "@/components/add-update";
 import { Badge } from "@/components/badge";
+import { CommandBar } from "@/components/command-bar";
 import { describeEvent, statusLabel, tierLabel, typeLabel } from "@/lib/labels";
-import { getChildren, getEventLog, getWorkObject, listPeople } from "@/lib/queries";
+import {
+  getBudgetSummary,
+  getChildren,
+  getEventLog,
+  getWorkObject,
+  listPeople,
+} from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
 
@@ -16,10 +23,11 @@ export default async function WorkDetailPage({
   const work = await getWorkObject(id);
   if (!work) notFound();
 
-  const [log, children, people] = await Promise.all([
+  const [log, children, people, budget] = await Promise.all([
     getEventLog(id),
     getChildren(id),
     listPeople(),
+    getBudgetSummary(id),
   ]);
 
   return (
@@ -69,9 +77,44 @@ export default async function WorkDetailPage({
 
       <section>
         <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-neutral-500">
+          Effort budget
+        </h2>
+        <div className="grid grid-cols-2 gap-3 rounded border border-neutral-200 bg-white p-4 text-sm sm:grid-cols-4">
+          <div>
+            <div className="text-xs text-neutral-500">Approved</div>
+            <div className="font-medium">
+              {budget.approvedHours == null ? "—" : `${budget.approvedHours}h`}
+            </div>
+          </div>
+          <div>
+            <div className="text-xs text-neutral-500">Confirmed</div>
+            <div className="font-medium">{budget.confirmedHours}h</div>
+          </div>
+          <div>
+            <div className="text-xs text-neutral-500">Remaining</div>
+            <div className="font-medium">
+              {budget.remainingHours == null ? "—" : `${budget.remainingHours}h`}
+            </div>
+          </div>
+          <div>
+            <div className="text-xs text-neutral-500">Variance</div>
+            <div className="font-medium">
+              {budget.varianceHours == null
+                ? "—"
+                : `${budget.varianceHours > 0 ? "+" : ""}${budget.varianceHours}h`}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-neutral-500">
           Add an update
         </h2>
-        <AddUpdate workObjectId={id} people={people.map((p) => ({ id: p.id, name: p.name }))} />
+        <div className="space-y-3">
+          <CommandBar currentWorkObjectId={id} />
+          <AddUpdate workObjectId={id} people={people.map((p) => ({ id: p.id, name: p.name }))} />
+        </div>
       </section>
 
       <section>

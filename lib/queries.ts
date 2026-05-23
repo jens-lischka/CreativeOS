@@ -1,6 +1,6 @@
-import { asc, desc, eq } from "drizzle-orm";
+import { asc, desc, eq, sql } from "drizzle-orm";
 import { getDb } from "./db";
-import { events, people, workObjects } from "./db/schema";
+import { events, people, timeEntries, workObjects } from "./db/schema";
 
 export interface WorkObjectListItem {
   id: string;
@@ -82,4 +82,33 @@ export async function getChildren(parentId: string): Promise<WorkObjectListItem[
 export async function listPeople() {
   const db = await getDb();
   return db.select().from(people).orderBy(asc(people.name));
+}
+
+export interface BudgetSummary {
+  approvedHours: number | null;
+  confirmedHours: number;
+  remainingHours: number | null;
+  varianceHours: number | null;
+}
+
+// Basic budget awareness (§24): approved effort vs confirmed time. Time is
+// organizational memory, not a productivity weapon (§23).
+export async function getBudgetSummary(workObjectId: string): Promise<BudgetSummary> {
+  const db = await getDb();
+  const [wo] = await db
+    .select({ approved: workObjects.effortBudgetHours })
+    .from(workObjects)
+    .where(eq(workObjects.id, workObjectId));
+  const [agg] = await db
+    .select({ total: sql<number>`coalesce(sum(${timeEntries.hours}), 0)` })
+    .from(timeEntries)
+    .where(eq(timeEntries.workObjectId, workObjectId));
+
+  const approvedHours = wo?.approved ?? null;
+  const confirmedHours = Number(agg?.total ?? 0);
+  const remainingHours = approvedHours == null ? null : approvedHours - confirmedHours;
+  const varianceHours =
+    approvedHours == null ? null : confirmedHours - approvedHours;
+
+  return { approvedHours, confirmedHours, remainingHours, varianceHours };
 }

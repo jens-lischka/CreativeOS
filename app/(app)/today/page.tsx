@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Badge } from "@/components/badge";
+import { CommandBar } from "@/components/command-bar";
 import { statusLabel, tierLabel, typeLabel } from "@/lib/labels";
 import { listWorkObjects, type WorkObjectListItem } from "@/lib/queries";
 
@@ -44,6 +45,7 @@ export default async function TodayPage() {
   return (
     <div className="space-y-8">
       <h1 className="text-xl font-semibold">Today</h1>
+      <CommandBar />
       <Section title="My commitments" items={commitments} />
       <Section title="Reviews to respond to" items={reviews} />
       <Section title="Blocked work" items={blocked} />

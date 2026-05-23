@@ -63,5 +63,14 @@ tests/               unit, integration (PGlite), e2e (Playwright)
 - **Phase 0 — Foundations:** scaffolding, DB, migrations/seed, test harness, CI. ✅
 - **Phase 1 — Work graph + event log:** hierarchy, tiers, append-only events, transactional
   projection, Today/Work views, project log. ✅
-- **Phase 2 — Explicit updates + LLM command bar:** next.
+- **Phase 2 — Explicit updates + LLM command bar:** free-text command bar parsed by Claude
+  (`claude-opus-4-7`, tool use) into structured events, with a confirm-before-apply fallback;
+  budget burn on work detail. Set `ANTHROPIC_API_KEY` to enable parsing. ✅
 - Phases 3–6: tiering/gates, artifacts/reviews, closeout/memory/reporting, integrations.
+
+### Command bar (Phase 2)
+
+The Today page and each work detail page have a command bar. Type a plain-language update
+(e.g. *"Finished v1 of the teaser, ready for review, 2h"*) and Claude parses it into structured
+events. Unambiguous updates apply directly; ambiguous ones show a confirm step. Without
+`ANTHROPIC_API_KEY`, the bar points you to the structured quick-action form instead.
