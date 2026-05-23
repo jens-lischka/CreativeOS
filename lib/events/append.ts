@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import type { Database } from "../db";
-import { events as eventsTable, timeEntries, workObjects } from "../db/schema";
+import { artifacts, events as eventsTable, timeEntries, workObjects } from "../db/schema";
 import type { Tier } from "../domain/types";
 import { applyEvent, type WorkObjectState } from "./reducers";
 import type { DomainEvent, PayloadOf } from "./types";
@@ -72,6 +72,8 @@ export async function appendEvent(
       totalHours: 0,
       blocked: false,
       reviewRequested: false,
+      currentVersion: 1,
+      reviewDecision: null,
     };
     const next = applyEvent(currentState, event);
 
@@ -96,6 +98,17 @@ export async function appendEvent(
         personId: actorId ?? null,
         hours: event.payload.hours,
         note: event.payload.note ?? null,
+        eventId: eventRow.id,
+      });
+    }
+
+    if (event.type === "artifact_added") {
+      await tx.insert(artifacts).values({
+        workObjectId,
+        name: event.payload.name,
+        url: event.payload.url,
+        fileType: event.payload.fileType ?? null,
+        version: event.payload.version,
         eventId: eventRow.id,
       });
     }

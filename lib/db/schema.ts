@@ -102,8 +102,32 @@ export const timeEntries = pgTable(
   (t) => [index("time_entries_work_object_idx").on(t.workObjectId)],
 );
 
+// Artifacts: versioned file/link references attached to work objects (§Phase 4).
+// Each artifact records which review version it belongs to so reviewers can see
+// exactly what was submitted at each round.
+export const artifacts = pgTable(
+  "artifacts",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    workObjectId: uuid("work_object_id")
+      .notNull()
+      .references(() => workObjects.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    url: text("url").notNull(),
+    fileType: text("file_type"),
+    version: integer("version").notNull().default(1),
+    eventId: uuid("event_id").references(() => events.id, { onDelete: "set null" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [
+    index("artifacts_work_object_idx").on(t.workObjectId),
+    index("artifacts_version_idx").on(t.workObjectId, t.version),
+  ],
+);
+
 export type WorkObjectRow = typeof workObjects.$inferSelect;
 export type NewWorkObjectRow = typeof workObjects.$inferInsert;
 export type EventRow = typeof events.$inferSelect;
 export type NewEventRow = typeof events.$inferInsert;
 export type PersonRow = typeof people.$inferSelect;
+export type ArtifactRow = typeof artifacts.$inferSelect;

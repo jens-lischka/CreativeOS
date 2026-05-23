@@ -11,6 +11,8 @@ export const EVENT_TYPES = [
   "progress_updated",
   "time_logged",
   "review_requested",
+  "review_outcome",
+  "artifact_added",
   "blocker_raised",
   "scope_change_proposed",
 ] as const;
@@ -45,6 +47,16 @@ export const payloadSchemas = {
   }),
   time_logged: z.object({ hours: z.number().positive(), note: z.string().optional() }),
   review_requested: z.object({ note: z.string().optional() }),
+  review_outcome: z.object({
+    decision: z.enum(["approved", "needs_revision", "rejected"]),
+    note: z.string().optional(),
+  }),
+  artifact_added: z.object({
+    name: z.string().min(1),
+    url: z.string().url(),
+    version: z.number().int().positive(),
+    fileType: z.string().optional(),
+  }),
   blocker_raised: z.object({ reason: z.string().min(1) }),
   scope_change_proposed: z.object({
     description: z.string().min(1),
