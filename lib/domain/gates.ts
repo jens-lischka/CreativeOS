@@ -61,6 +61,24 @@ export function authorizeEvent(
       };
     }
 
+    case "review_outcome": {
+      // Approving, requesting revision, or rejecting is a formal human decision (§14).
+      if (roles.some((r) => permissionFor(r, "approve_review") === "yes")) {
+        return { action: "allow" };
+      }
+      return {
+        action: "deny",
+        reason: "Only a Creative Lead, PM, or Creative Director can record a review outcome (§14).",
+      };
+    }
+
+    case "artifact_added":
+      // Attaching a file is open to any authorized contributor (§13).
+      if (roles.some((r) => permissionFor(r, "attach_file") === "yes")) {
+        return { action: "allow" };
+      }
+      return { action: "deny", reason: "You do not have permission to attach files (§13)." };
+
     default:
       return { action: "allow" };
   }

@@ -36,6 +36,13 @@ export function describeEvent(type: string, payload: unknown): string {
       return `Logged ${p.hours}h${p.note ? ` — ${String(p.note)}` : ""}`;
     case "review_requested":
       return `Requested review${p.note ? ` — ${String(p.note)}` : ""}`;
+    case "review_outcome": {
+      const decision = String(p.decision ?? "");
+      const label = decision === "approved" ? "Approved" : decision === "needs_revision" ? "Needs revision" : "Rejected";
+      return `${label}${p.note ? ` — ${String(p.note)}` : ""}`;
+    }
+    case "artifact_added":
+      return `Artifact added: ${String(p.name ?? "")} (v${String(p.version ?? 1)})${p.fileType ? ` [${String(p.fileType)}]` : ""}`;
     case "blocker_raised":
       return `Blocker raised: ${String(p.reason ?? "")}`;
     case "scope_change_proposed":

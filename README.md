@@ -70,7 +70,12 @@ tests/               unit, integration (PGlite), e2e (Playwright)
   exploration→production lock (§7), tier-aware lifecycle transitions (§12), and the §13/§14
   rights matrix enforced on every event-applying endpoint (anyone can raise reality; only
   authorized roles change commitments); scope proposals show a neutral trade-off (§24). ✅
-- Phases 4–6: artifacts/reviews, closeout/memory/reporting, integrations.
+- **Phase 4 — Artifacts, review/approval flow & versioned deliverables:** artifact table with
+  versioned file/link references; `artifact_added` and `review_outcome` event types; review
+  outcome gate (creative lead/PM/CD only); approved → delivered, needs_revision → back to
+  in_production with auto version bump; version badge on work detail; review panel shown when
+  status is `in_review`. ✅
+- Phases 5–6: closeout/memory/reporting, integrations.
 
 ### Connecting Supabase
 

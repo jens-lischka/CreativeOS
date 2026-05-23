@@ -1,6 +1,6 @@
-import { asc, desc, eq, sql } from "drizzle-orm";
+import { asc, count, desc, eq, sql } from "drizzle-orm";
 import { getDb } from "./db";
-import { events, people, roleAssignments, timeEntries, workObjects } from "./db/schema";
+import { artifacts, events, people, roleAssignments, timeEntries, workObjects } from "./db/schema";
 import type { Role } from "./domain/types";
 
 export interface WorkObjectListItem {
@@ -121,4 +121,45 @@ export async function getBudgetSummary(workObjectId: string): Promise<BudgetSumm
     approvedHours == null ? null : confirmedHours - approvedHours;
 
   return { approvedHours, confirmedHours, remainingHours, varianceHours };
+}
+
+export interface ArtifactItem {
+  id: string;
+  name: string;
+  url: string;
+  fileType: string | null;
+  version: number;
+  createdAt: Date;
+}
+
+export async function getArtifacts(workObjectId: string): Promise<ArtifactItem[]> {
+  const db = await getDb();
+  return db
+    .select({
+      id: artifacts.id,
+      name: artifacts.name,
+      url: artifacts.url,
+      fileType: artifacts.fileType,
+      version: artifacts.version,
+      createdAt: artifacts.createdAt,
+    })
+    .from(artifacts)
+    .where(eq(artifacts.workObjectId, workObjectId))
+    .orderBy(asc(artifacts.version), asc(artifacts.createdAt));
+}
+
+// The current version number is 1 + how many non-approval review outcomes have occurred.
+// This lets the add-artifact form default to the correct version without needing the
+// full event log.
+export async function getCurrentVersion(workObjectId: string): Promise<number> {
+  const db = await getDb();
+  const [row] = await db
+    .select({ n: count() })
+    .from(events)
+    .where(
+      sql`${events.workObjectId} = ${workObjectId}
+        AND ${events.type} = 'review_outcome'
+        AND ${events.payload}->>'decision' IN ('needs_revision', 'rejected')`,
+    );
+  return 1 + Number(row?.n ?? 0);
 }

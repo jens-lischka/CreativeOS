@@ -1,15 +1,19 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AddUpdate } from "@/components/add-update";
+import { Artifacts } from "@/components/artifacts";
 import { Badge } from "@/components/badge";
 import { CommandBar } from "@/components/command-bar";
 import { Governance } from "@/components/governance";
+import { ReviewOutcome } from "@/components/review-outcome";
 import { suggestTier } from "@/lib/domain/gates";
 import type { WorkObjectType } from "@/lib/domain/types";
 import { describeEvent, statusLabel, tierLabel, typeLabel } from "@/lib/labels";
 import {
+  getArtifacts,
   getBudgetSummary,
   getChildren,
+  getCurrentVersion,
   getEventLog,
   getWorkObject,
   listPeople,
@@ -26,11 +30,13 @@ export default async function WorkDetailPage({
   const work = await getWorkObject(id);
   if (!work) notFound();
 
-  const [log, children, people, budget] = await Promise.all([
+  const [log, children, people, budget, artifactList, currentVersion] = await Promise.all([
     getEventLog(id),
     getChildren(id),
     listPeople(),
     getBudgetSummary(id),
+    getArtifacts(id),
+    getCurrentVersion(id),
   ]);
 
   return (
@@ -48,6 +54,7 @@ export default async function WorkDetailPage({
             <Badge>{tierLabel(work.tier)}</Badge>
             <Badge tone="blue">{statusLabel(work.status)}</Badge>
             {work.mode && <Badge tone="amber">{statusLabel(work.mode)}</Badge>}
+            {currentVersion > 1 && <Badge>v{currentVersion}</Badge>}
           </div>
         </div>
         {work.why && <p className="mt-3 text-sm text-neutral-700">{work.why}</p>}
@@ -122,6 +129,27 @@ export default async function WorkDetailPage({
             </div>
           </div>
         </div>
+      </section>
+
+      {work.status === "in_review" && (
+        <section>
+          <ReviewOutcome
+            workObjectId={id}
+            people={people.map((p) => ({ id: p.id, name: p.name }))}
+          />
+        </section>
+      )}
+
+      <section>
+        <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-neutral-500">
+          Artifacts
+        </h2>
+        <Artifacts
+          workObjectId={id}
+          artifactList={artifactList}
+          currentVersion={currentVersion}
+          people={people.map((p) => ({ id: p.id, name: p.name }))}
+        />
       </section>
 
       <section>

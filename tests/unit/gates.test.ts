@@ -55,6 +55,48 @@ describe("authorizeEvent — rights & gates (§13/§14)", () => {
   });
 });
 
+describe("authorizeEvent — review_outcome & artifact_added (§Phase 4)", () => {
+  it("blocks a designer from recording a review outcome", () => {
+    const ev: DomainEvent = {
+      type: "review_outcome",
+      payload: { decision: "approved" },
+    };
+    expect(authorizeEvent(["designer"], ev, ctx(2, "in_review")).action).toBe("deny");
+  });
+
+  it("allows a creative_lead to approve", () => {
+    const ev: DomainEvent = {
+      type: "review_outcome",
+      payload: { decision: "approved" },
+    };
+    expect(authorizeEvent(["creative_lead"], ev, ctx(2, "in_review")).action).toBe("allow");
+  });
+
+  it("allows a PM to request needs_revision", () => {
+    const ev: DomainEvent = {
+      type: "review_outcome",
+      payload: { decision: "needs_revision" },
+    };
+    expect(authorizeEvent(["project_manager"], ev, ctx(1, "in_review")).action).toBe("allow");
+  });
+
+  it("allows a designer to add an artifact", () => {
+    const ev: DomainEvent = {
+      type: "artifact_added",
+      payload: { name: "Hero visual", url: "https://figma.com/file/xyz", version: 1 },
+    };
+    expect(authorizeEvent(["designer"], ev, ctx(2)).action).toBe("allow");
+  });
+
+  it("blocks a requester from adding an artifact", () => {
+    const ev: DomainEvent = {
+      type: "artifact_added",
+      payload: { name: "Brief", url: "https://docs.google.com/x", version: 1 },
+    };
+    expect(authorizeEvent(["requester"], ev, ctx(2)).action).toBe("deny");
+  });
+});
+
 describe("suggestTier (§3)", () => {
   it("suggests Tier 1 for high-impact work", () => {
     expect(suggestTier({ type: "project", title: "Brand campaign hero film" })).toBe(1);

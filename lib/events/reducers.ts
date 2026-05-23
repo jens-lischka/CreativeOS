@@ -12,6 +12,9 @@ export interface WorkObjectState {
   totalHours: number;
   blocked: boolean;
   reviewRequested: boolean;
+  // Increments on each needs_revision/rejected outcome, so v1 → v2 → etc. (§Phase 4).
+  currentVersion: number;
+  reviewDecision: "approved" | "needs_revision" | "rejected" | null;
 }
 
 export function applyEvent(
@@ -30,6 +33,8 @@ export function applyEvent(
       totalHours: 0,
       blocked: false,
       reviewRequested: false,
+      currentVersion: 1,
+      reviewDecision: null,
     };
   }
 
@@ -68,6 +73,27 @@ export function applyEvent(
 
     case "review_requested":
       return { ...state, reviewRequested: true };
+
+    case "review_outcome": {
+      const { decision } = event.payload;
+      const statusMap = {
+        approved: "delivered" as WorkStatus,
+        needs_revision: "in_production" as WorkStatus,
+        rejected: "closing" as WorkStatus,
+      };
+      return {
+        ...state,
+        status: statusMap[decision],
+        reviewRequested: false,
+        reviewDecision: decision,
+        // Each non-approval outcome starts a new revision round.
+        currentVersion: decision !== "approved" ? state.currentVersion + 1 : state.currentVersion,
+      };
+    }
+
+    case "artifact_added":
+      // Artifacts are stored in their own table; the event is the log entry.
+      return state;
 
     case "blocker_raised":
       return { ...state, blocked: true };

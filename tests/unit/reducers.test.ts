@@ -82,6 +82,57 @@ describe("applyEvent", () => {
   });
 });
 
+describe("review_outcome (§Phase 4)", () => {
+  it("approved moves to delivered, keeps version", () => {
+    const s1 = applyEvent(null, created);
+    const s2 = applyEvent(s1, { type: "review_requested", payload: {} });
+    const s3 = applyEvent(s2, {
+      type: "review_outcome",
+      payload: { decision: "approved" },
+    });
+    expect(s3.status).toBe("delivered");
+    expect(s3.reviewRequested).toBe(false);
+    expect(s3.reviewDecision).toBe("approved");
+    expect(s3.currentVersion).toBe(1);
+  });
+
+  it("needs_revision moves to in_production and bumps version", () => {
+    const s1 = applyEvent(null, created);
+    const s2 = applyEvent(s1, { type: "review_requested", payload: {} });
+    const s3 = applyEvent(s2, {
+      type: "review_outcome",
+      payload: { decision: "needs_revision", note: "Rework the headline" },
+    });
+    expect(s3.status).toBe("in_production");
+    expect(s3.currentVersion).toBe(2);
+  });
+
+  it("rejected moves to closing and bumps version", () => {
+    const s1 = applyEvent(null, created);
+    const s2 = applyEvent(s1, {
+      type: "review_outcome",
+      payload: { decision: "rejected" },
+    });
+    expect(s2.status).toBe("closing");
+    expect(s2.currentVersion).toBe(2);
+  });
+
+  it("artifact_added is a pure log entry — no state change", () => {
+    const s1 = applyEvent(null, created);
+    const s2 = applyEvent(s1, {
+      type: "artifact_added",
+      payload: { name: "Teaser v1", url: "https://figma.com/file/abc", version: 1 },
+    });
+    expect(s2).toEqual(s1);
+  });
+
+  it("initializes currentVersion to 1 on creation", () => {
+    const s = applyEvent(null, created);
+    expect(s.currentVersion).toBe(1);
+    expect(s.reviewDecision).toBeNull();
+  });
+});
+
 describe("foldEvents", () => {
   it("folds a full stream into current state", () => {
     const state = foldEvents([
