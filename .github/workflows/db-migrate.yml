@@ -23,7 +23,7 @@ jobs:
   migrate:
     runs-on: ubuntu-latest
     env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      DATABASE_URL: ${{ secrets.CREATIVEOS_SUPABASE }}
     steps:
       - uses: actions/checkout@v4
 
